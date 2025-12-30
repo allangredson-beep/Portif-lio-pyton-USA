@@ -1,85 +1,109 @@
-
-class GlobalCurrencyConverter {
+// Professional Responsive Forex Calculator
+class ResponsiveForexCalculator {
     constructor() {
-        this.initializeElements();
-        this.initializeState();
-        this.initializeEventListeners();
-        this.initializeChart();
-        this.initializeMarketData();
-        this.loadSettings();
-        this.updateDisplay();
+        this.init();
     }
 
-    initializeElements() {
+    async init() {
+        // Hide loading screen
+        this.hideLoadingScreen();
+        
+        // Initialize all components
+        this.initElements();
+        this.initState();
+        this.initEventListeners();
+        this.initResponsiveFeatures();
+        this.initVirtualKeyboard();
+        
+        // Load initial data
+        await this.loadMarketData();
+        this.updateDisplay();
+        
+        // Start auto-update
+        this.startAutoUpdate();
+        
+        // Add orientation change handler
+        this.handleOrientationChange();
+    }
+
+    hideLoadingScreen() {
+        const loadingScreen = document.getElementById('loadingScreen');
+        const mainContainer = document.getElementById('mainContainer');
+        
+        setTimeout(() => {
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                mainContainer.style.display = 'block';
+                this.showToast('Forex Calculator Ready', 'Market data loaded successfully', 'success');
+            }, 300);
+        }, 1000);
+    }
+
+    initElements() {
         // Input Elements
-        this.amountFrom = document.getElementById('amountFrom');
-        this.amountTo = document.getElementById('amountTo');
-        this.currencyFrom = document.getElementById('currencyFrom');
-        this.currencyTo = document.getElementById('currencyTo');
-        this.swapButton = document.getElementById('swapCurrencies');
+        this.amountInput = document.getElementById('amountInput');
+        this.amountOutput = document.getElementById('amountOutput');
+        this.currencyFromSelect = document.getElementById('currencyFromSelect');
+        this.currencyToSelect = document.getElementById('currencyToSelect');
+        
+        // Button Elements
         this.convertBtn = document.getElementById('convertBtn');
+        this.swapBtn = document.getElementById('swapBtn');
         this.quickConvertBtn = document.getElementById('quickConvertBtn');
-        this.reverseBtn = document.getElementById('reverseBtn');
+        this.reverseRate = document.getElementById('reverseRate');
+        this.favoriteRate = document.getElementById('favoriteRate');
+        this.saveConversion = document.getElementById('saveConversion');
+        this.clearAll = document.getElementById('clearAll');
+        this.refreshMarket = document.getElementById('refreshMarket');
+        this.refreshRates = document.getElementById('refreshRates');
+        this.fullscreenBtn = document.getElementById('fullscreenBtn');
         
         // Display Elements
-        this.currentRate = document.getElementById('currentRate');
-        this.rateTimestamp = document.getElementById('rateTimestamp');
-        this.sourceAmount = document.getElementById('sourceAmount');
-        this.targetAmount = document.getElementById('targetAmount');
-        this.exchangeRateDisplay = document.getElementById('exchangeRateDisplay');
-        this.finalAmount = document.getElementById('finalAmount');
-        this.transactionTime = document.getElementById('transactionTime');
+        this.currentRateDisplay = document.getElementById('currentRateDisplay');
+        this.summarySource = document.getElementById('summarySource');
+        this.summaryTarget = document.getElementById('summaryTarget');
+        this.summaryRate = document.getElementById('summaryRate');
+        this.summaryTotal = document.getElementById('summaryTotal');
+        this.conversionTime = document.getElementById('conversionTime');
+        this.marketStatusText = document.getElementById('marketStatusText');
+        this.lastUpdate = document.getElementById('lastUpdate');
+        
+        // Mobile Elements
+        this.mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        this.mobileSidebar = document.getElementById('mobileSidebar');
+        this.closeSidebar = document.getElementById('closeSidebar');
+        this.mobileSettingsBtn = document.getElementById('mobileSettingsBtn');
+        this.mobileSettingsPanel = document.getElementById('mobileSettingsPanel');
+        this.closeSettings = document.getElementById('closeSettings');
+        this.mobileNav = document.querySelectorAll('.nav-btn');
+        this.mobileConvertBtn = document.getElementById('mobileConvertBtn');
+        
+        // Preset Elements
+        this.presetButtons = document.querySelectorAll('.preset');
+        this.quickActions = document.querySelectorAll('.quick-action');
+        
+        // Tool Elements
+        this.toolButtons = document.querySelectorAll('.tool-btn');
         
         // Market Elements
-        this.marketStatus = document.getElementById('marketStatusText');
-        this.statusIndicator = document.getElementById('statusIndicator');
-        this.lastUpdate = document.getElementById('lastUpdate');
-        this.footerUpdate = document.getElementById('footerUpdate');
-        this.currencyPairs = document.getElementById('currencyPairs');
+        this.marketPairs = document.getElementById('marketPairs');
         
-        // History Elements
-        this.historyList = document.getElementById('historyList');
-        this.historyFilter = document.getElementById('historyFilter');
-        this.timeFilter = document.getElementById('timeFilter');
-        this.exportHistoryBtn = document.getElementById('exportHistory');
-        this.clearHistoryBtn = document.getElementById('clearHistory');
+        // Toast Container
+        this.toastContainer = document.getElementById('toastContainer');
         
-        // Preset Buttons
-        this.presetButtons = document.querySelectorAll('.preset-btn');
-        
-        // Chart Element
-        this.trendChart = null;
+        // Virtual Keyboard
+        this.virtualKeyboard = document.getElementById('virtualKeyboard');
+        this.closeKeyboard = document.getElementById('closeKeyboard');
         
         // Settings Elements
-        this.darkModeToggle = document.getElementById('darkModeToggle');
-        this.autoUpdateToggle = document.getElementById('autoUpdateToggle');
-        this.notificationsToggle = document.getElementById('notificationsToggle');
-        this.languageSelect = document.getElementById('languageSelect');
-        this.numberFormat = document.getElementById('numberFormat');
-        this.dataSource = document.getElementById('dataSource');
-        this.apiKey = document.getElementById('apiKey');
-        this.apiKeySection = document.getElementById('apiKeySection');
-        
-        // Calculator Elements
-        this.projectValue = document.getElementById('projectValue');
-        this.paymentCurrency = document.getElementById('paymentCurrency');
-        this.platformFee = document.getElementById('platformFee');
-        this.taxRate = document.getElementById('taxRate');
-        this.calculateProjectBtn = document.getElementById('calculateProject');
-        this.calcResults = document.getElementById('calcResults');
-        
-        // Market Insights
-        this.marketInsight = document.getElementById('marketInsight');
-        this.volatilityLevel = document.getElementById('volatilityLevel');
-        this.volatilityText = document.getElementById('volatilityText');
-        
-        // Tab Elements
-        this.tabs = document.querySelectorAll('.tab');
-        this.tabPanes = document.querySelectorAll('.tab-pane');
+        this.mobileDarkMode = document.getElementById('mobileDarkMode');
+        this.mobileAutoUpdate = document.getElementById('mobileAutoUpdate');
+        this.mobileNotifications = document.getElementById('mobileNotifications');
     }
 
-    initializeState() {
-        // Supported currencies with flags and names
+    initState() {
+        // Currency data
         this.currencies = {
             'USD': { name: 'US Dollar', flag: 'us', symbol: '$' },
             'EUR': { name: 'Euro', flag: 'eu', symbol: '€' },
@@ -98,21 +122,7 @@ class GlobalCurrencyConverter {
             'KRW': { name: 'South Korean Won', flag: 'kr', symbol: '₩' }
         };
 
-        // Major currency pairs for global markets
-        this.majorPairs = [
-            { from: 'EUR', to: 'USD', name: 'EUR/USD' },
-            { from: 'USD', to: 'JPY', name: 'USD/JPY' },
-            { from: 'GBP', to: 'USD', name: 'GBP/USD' },
-            { from: 'USD', to: 'CHF', name: 'USD/CHF' },
-            { from: 'USD', to: 'CAD', name: 'USD/CAD' },
-            { from: 'AUD', to: 'USD', name: 'AUD/USD' },
-            { from: 'NZD', to: 'USD', name: 'NZD/USD' },
-            { from: 'EUR', to: 'GBP', name: 'EUR/GBP' },
-            { from: 'EUR', to: 'JPY', name: 'EUR/JPY' },
-            { from: 'GBP', to: 'JPY', name: 'GBP/JPY' }
-        ];
-
-        // Current exchange rates (initial values - will be updated from API)
+        // Current rates (simulated - in production would be from API)
         this.rates = {
             'USD': 1,
             'EUR': 0.92,
@@ -131,23 +141,33 @@ class GlobalCurrencyConverter {
             'KRW': 1325.50
         };
 
-        // Market insights data
-        this.marketInsights = [
-            "USD strengthening against emerging market currencies due to Fed policy",
-            "EUR showing resilience despite economic headwinds in the Eurozone",
-            "GBP volatile amid ongoing economic policy adjustments",
-            "JPY remains weak due to Bank of Japan's yield curve control",
-            "Commodity currencies (CAD, AUD) tracking oil and metal prices",
-            "Emerging market currencies under pressure from global risk sentiment"
+        // Major currency pairs
+        this.majorPairs = [
+            { from: 'EUR', to: 'USD', name: 'EUR/USD' },
+            { from: 'USD', to: 'JPY', name: 'USD/JPY' },
+            { from: 'GBP', to: 'USD', name: 'GBP/USD' },
+            { from: 'USD', to: 'CHF', name: 'USD/CHF' },
+            { from: 'USD', to: 'CAD', name: 'USD/CAD' },
+            { from: 'AUD', to: 'USD', name: 'AUD/USD' },
+            { from: 'NZD', to: 'USD', name: 'NZD/USD' },
+            { from: 'EUR', to: 'GBP', name: 'EUR/GBP' },
+            { from: 'EUR', to: 'JPY', name: 'EUR/JPY' },
+            { from: 'GBP', to: 'JPY', name: 'GBP/JPY' }
         ];
 
-        // Historical data storage
-        this.conversionHistory = JSON.parse(localStorage.getItem('conversionHistory')) || [];
-        this.settings = JSON.parse(localStorage.getItem('converterSettings')) || this.getDefaultSettings();
+        // State
+        this.conversionHistory = JSON.parse(localStorage.getItem('forexHistory')) || [];
+        this.favoritePairs = JSON.parse(localStorage.getItem('favoritePairs')) || [];
+        this.settings = JSON.parse(localStorage.getItem('forexSettings')) || this.getDefaultSettings();
         
-        // Real-time update interval
+        // Update interval
         this.updateInterval = null;
         this.lastUpdateTime = new Date();
+        
+        // Mobile state
+        this.isMobile = this.checkIfMobile();
+        this.isTablet = this.checkIfTablet();
+        this.currentSection = 'converter';
     }
 
     getDefaultSettings() {
@@ -155,484 +175,263 @@ class GlobalCurrencyConverter {
             darkMode: true,
             autoUpdate: true,
             notifications: false,
-            language: 'en',
-            numberFormat: 'en-US',
-            dataSource: 'fixer',
-            apiKey: '',
-            favoritePairs: ['EUR/USD', 'USD/JPY', 'GBP/USD']
+            updateInterval: 60, // seconds
+            defaultAmount: 1000,
+            favoriteCurrencies: ['USD', 'EUR', 'GBP', 'BRL'],
+            numberFormat: 'en-US'
         };
     }
 
-    initializeEventListeners() {
+    initEventListeners() {
         // Conversion events
-        this.convertBtn.addEventListener('click', () => this.convertCurrency());
+        this.convertBtn.addEventListener('click', () => this.performConversion());
+        this.swapBtn.addEventListener('click', () => this.swapCurrencies());
         this.quickConvertBtn.addEventListener('click', () => this.quickConvert());
-        this.reverseBtn.addEventListener('click', () => this.reverseConversion());
-        this.swapButton.addEventListener('click', () => this.swapCurrencies());
+        this.reverseRate.addEventListener('click', () => this.reverseRate());
+        this.favoriteRate.addEventListener('click', () => this.toggleFavorite());
+        this.saveConversion.addEventListener('click', () => this.saveToHistory());
+        this.clearAll.addEventListener('click', () => this.clearConversion());
         
         // Input events
-        this.amountFrom.addEventListener('input', () => this.updateConversion());
-        this.currencyFrom.addEventListener('change', () => this.updateRates());
-        this.currencyTo.addEventListener('change', () => this.updateRates());
+        this.amountInput.addEventListener('input', () => this.updateConversion());
+        this.currencyFromSelect.addEventListener('change', () => this.updateRate());
+        this.currencyToSelect.addEventListener('change', () => this.updateRate());
         
-        // Preset buttons
+        // Mobile events
+        this.mobileMenuBtn.addEventListener('click', () => this.toggleSidebar());
+        this.closeSidebar.addEventListener('click', () => this.closeSidebarMenu());
+        this.mobileSettingsBtn.addEventListener('click', () => this.toggleSettingsPanel());
+        this.closeSettings.addEventListener('click', () => this.closeSettingsPanel());
+        this.mobileConvertBtn.addEventListener('click', () => this.performConversion());
+        
+        // Navigation events
+        this.mobileNav.forEach(btn => {
+            btn.addEventListener('click', (e) => this.switchSection(e.currentTarget.dataset.section));
+        });
+        
+        // Preset events
         this.presetButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const amount = e.target.dataset.amount;
-                this.amountFrom.value = amount;
-                this.updateConversion();
-            });
+            btn.addEventListener('click', (e) => this.setPresetAmount(e.currentTarget.dataset.amount));
         });
         
-        // History events
-        this.exportHistoryBtn.addEventListener('click', () => this.exportHistory());
-        this.clearHistoryBtn.addEventListener('click', () => this.clearHistory());
-        this.historyFilter.addEventListener('change', () => this.filterHistory());
-        this.timeFilter.addEventListener('change', () => this.filterHistory());
-        
-        // Tab events
-        this.tabs.forEach(tab => {
-            tab.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
+        this.quickActions.forEach(btn => {
+            btn.addEventListener('click', (e) => this.setPresetAmount(e.currentTarget.dataset.preset));
         });
         
-        // Settings events
-        this.darkModeToggle.addEventListener('change', () => this.toggleDarkMode());
-        this.autoUpdateToggle.addEventListener('change', () => this.toggleAutoUpdate());
-        this.notificationsToggle.addEventListener('change', () => this.toggleNotifications());
-        this.languageSelect.addEventListener('change', () => this.changeLanguage());
-        this.numberFormat.addEventListener('change', () => this.changeNumberFormat());
-        this.dataSource.addEventListener('change', () => this.changeDataSource());
+        // Tool events
+        this.toolButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleToolClick(e.currentTarget.dataset.tool));
+        });
         
-        // Calculator events
-        this.calculateProjectBtn.addEventListener('click', () => this.calculateProject());
+        // Market refresh
+        this.refreshMarket.addEventListener('click', () => this.loadMarketData());
+        this.refreshRates.addEventListener('click', () => this.updateRate());
         
-        // Initialize with example
-        setTimeout(() => {
-            this.amountFrom.value = '1000';
-            this.updateConversion();
-        }, 1000);
+        // Fullscreen
+        this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+        
+        // Touch events for mobile
+        this.initTouchEvents();
+        
+        // Keyboard events
+        this.initKeyboardEvents();
     }
 
-    initializeChart() {
-        const ctx = document.getElementById('trendChart').getContext('2d');
+    initResponsiveFeatures() {
+        // Check device type
+        this.updateDeviceType();
         
-        // Sample data for trend chart
-        const labels = Array.from({length: 30}, (_, i) => {
-            const date = new Date();
-            date.setDate(date.getDate() - (29 - i));
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        // Listen for resize
+        window.addEventListener('resize', () => {
+            this.updateDeviceType();
+            this.adjustLayout();
         });
+        
+        // Initial layout adjustment
+        this.adjustLayout();
+        
+        // Add touch-friendly styles for mobile
+        if (this.isMobile) {
+            this.makeTouchFriendly();
+        }
+    }
 
-        const data = Array.from({length: 30}, () => 5.1 + (Math.random() - 0.5) * 0.2);
+    checkIfMobile() {
+        return window.innerWidth <= 768;
+    }
 
-        this.trendChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'USD/BRL',
-                    data: data,
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(148, 163, 184, 0.2)'
-                        },
-                        ticks: {
-                            color: '#94a3b8',
-                            maxRotation: 0
-                        }
-                    },
-                    y: {
-                        grid: {
-                            color: 'rgba(148, 163, 184, 0.2)'
-                        },
-                        ticks: {
-                            color: '#94a3b8',
-                            callback: function(value) {
-                                return value.toFixed(3);
-                            }
-                        }
-                    }
+    checkIfTablet() {
+        return window.innerWidth > 768 && window.innerWidth <= 1024;
+    }
+
+    updateDeviceType() {
+        this.isMobile = this.checkIfMobile();
+        this.isTablet = this.checkIfTablet();
+        
+        // Update body class for CSS targeting
+        document.body.classList.toggle('mobile', this.isMobile);
+        document.body.classList.toggle('tablet', this.isTablet);
+        document.body.classList.toggle('desktop', !this.isMobile && !this.isTablet);
+    }
+
+    adjustLayout() {
+        // Adjust font sizes for mobile
+        const baseFontSize = this.isMobile ? '14px' : '16px';
+        document.documentElement.style.fontSize = baseFontSize;
+        
+        // Adjust spacing for mobile
+        const spacingMultiplier = this.isMobile ? 0.8 : 1;
+        
+        // Update CSS variables
+        document.documentElement.style.setProperty('--space-sm', `${0.5 * spacingMultiplier}rem`);
+        document.documentElement.style.setProperty('--space-md', `${1 * spacingMultiplier}rem`);
+        document.documentElement.style.setProperty('--space-lg', `${1.5 * spacingMultiplier}rem`);
+        document.documentElement.style.setProperty('--space-xl', `${2 * spacingMultiplier}rem`);
+    }
+
+    makeTouchFriendly() {
+        // Increase touch targets
+        const touchElements = document.querySelectorAll('button, input, select, .preset, .tool-btn');
+        touchElements.forEach(el => {
+            if (!el.classList.contains('touch-optimized')) {
+                el.classList.add('touch-optimized');
+                // Ensure minimum touch target size
+                if (el.tagName === 'BUTTON' || el.classList.contains('preset') || el.classList.contains('tool-btn')) {
+                    el.style.minHeight = '44px';
+                    el.style.minWidth = '44px';
+                }
+            }
+        });
+        
+        // Add touch feedback
+        document.addEventListener('touchstart', () => {}, { passive: true });
+        
+        // Prevent zoom on input focus for iOS
+        document.addEventListener('touchstart', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+                document.body.style.zoom = '100%';
+            }
+        });
+    }
+
+    initTouchEvents() {
+        // Swipe gestures for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+        
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            this.handleSwipe(touchStartX, touchEndX);
+        }, { passive: true });
+    }
+
+    handleSwipe(startX, endX) {
+        const swipeThreshold = 50;
+        const swipeDistance = endX - startX;
+        
+        if (Math.abs(swipeDistance) > swipeThreshold) {
+            if (swipeDistance > 0 && this.currentSection !== 'converter') {
+                // Swipe right - go to previous section
+                const sections = ['converter', 'market', 'history', 'calculator', 'more'];
+                const currentIndex = sections.indexOf(this.currentSection);
+                if (currentIndex > 0) {
+                    this.switchSection(sections[currentIndex - 1]);
+                }
+            } else if (swipeDistance < 0 && this.currentSection !== 'more') {
+                // Swipe left - go to next section
+                const sections = ['converter', 'market', 'history', 'calculator', 'more'];
+                const currentIndex = sections.indexOf(this.currentSection);
+                if (currentIndex < sections.length - 1) {
+                    this.switchSection(sections[currentIndex + 1]);
+                }
+            }
+        }
+    }
+
+    initKeyboardEvents() {
+        // Virtual keyboard for mobile
+        this.amountInput.addEventListener('focus', () => {
+            if (this.isMobile) {
+                this.showVirtualKeyboard();
+            }
+        });
+        
+        this.closeKeyboard.addEventListener('click', () => {
+            this.hideVirtualKeyboard();
+        });
+        
+        // Handle physical keyboard
+        document.addEventListener('keydown', (e) => {
+            if (e.target === this.amountInput) {
+                // Prevent default for arrow keys in virtual keyboard mode
+                if (this.isMobile && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    e.preventDefault();
+                }
+                
+                // Enter key to convert
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.performConversion();
                 }
             }
         });
     }
 
-    initializeMarketData() {
-        this.updateMarketStatus();
-        this.loadMajorPairs();
-        this.updateMarketInsights();
+    initVirtualKeyboard() {
+        const keyboardKeys = document.querySelector('.keyboard-keys');
+        const keys = [
+            '1', '2', '3',
+            '4', '5', '6',
+            '7', '8', '9',
+            '.', '0', '⌫'
+        ];
         
-        // Start auto-update if enabled
-        if (this.settings.autoUpdate) {
-            this.startAutoUpdate();
-        }
+        keyboardKeys.innerHTML = keys.map(key => 
+            `<button class="key ${key === '⌫' ? 'function' : ''}" data-key="${key}">${key}</button>`
+        ).join('');
         
-        // Check market hours every minute
-        setInterval(() => this.updateMarketStatus(), 60000);
+        // Add keyboard event listeners
+        keyboardKeys.addEventListener('click', (e) => {
+            if (e.target.classList.contains('key')) {
+                const key = e.target.dataset.key;
+                this.handleKeyboardInput(key);
+            }
+        });
     }
 
-    updateMarketStatus() {
-        const now = new Date();
-        const hours = now.getUTCHours();
-        const day = now.getUTCDay(); // 0 = Sunday, 1-5 = Monday-Friday
+    handleKeyboardInput(key) {
+        const input = this.amountInput;
+        const start = input.selectionStart;
+        const end = input.selectionEnd;
+        const value = input.value;
         
-        // Forex market is open 24/5
-        const isWeekend = day === 0 || day === 6;
-        const isMarketOpen = !isWeekend;
-        
-        if (isMarketOpen) {
-            this.marketStatus.textContent = 'OPEN';
-            this.statusIndicator.className = 'status-indicator open';
-            
-            // Check major trading sessions
-            if (hours >= 7 && hours < 16) {
-                this.marketStatus.textContent = 'OPEN (London/NY Overlap)';
-            } else if (hours >= 0 && hours < 9) {
-                this.marketStatus.textContent = 'OPEN (Asia Session)';
+        if (key === '⌫') {
+            // Backspace
+            input.value = value.substring(0, start - 1) + value.substring(end);
+            input.selectionStart = input.selectionEnd = start - 1;
+        } else if (key === '.') {
+            // Only allow one decimal point
+            if (!value.includes('.')) {
+                input.value = value.substring(0, start) + key + value.substring(end);
+                input.selectionStart = input.selectionEnd = start + 1;
             }
         } else {
-            this.marketStatus.textContent = 'CLOSED (Weekend)';
-            this.statusIndicator.className = 'status-indicator closed';
+            // Regular number
+            input.value = value.substring(0, start) + key + value.substring(end);
+            input.selectionStart = input.selectionEnd = start + 1;
         }
         
-        // Update timestamp
-        const timeString = now.toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            timeZoneName: 'short' 
-        });
-        this.lastUpdate.textContent = `Last checked: ${timeString}`;
-        this.footerUpdate.textContent = timeString;
+        // Trigger input event
+        input.dispatchEvent(new Event('input'));
     }
 
-    async loadMajorPairs() {
-        try {
-            // In a real application, you would fetch this from an API
-            // For demonstration, we'll use simulated data
-            const pairsHTML = this.majorPairs.map(pair => {
-                const baseRate = this.rates[pair.from];
-                const quoteRate = this.rates[pair.to];
-                const rate = quoteRate / baseRate;
-                const change = (Math.random() - 0.5) * 0.5;
-                const changePercent = (change / rate * 100).toFixed(2);
-                
-                return `
-                    <div class="currency-pair">
-                        <div class="pair-info">
-                            <div class="pair-flag">
-                                <span class="flag-icon flag-icon-${this.currencies[pair.from].flag}"></span>
-                                <span class="flag-icon flag-icon-${this.currencies[pair.to].flag}"></span>
-                            </div>
-                            <span class="pair-name">${pair.name}</span>
-                        </div>
-                        <div class="pair-details">
-                            <span class="pair-rate">${rate.toFixed(4)}</span>
-                            <span class="pair-change ${change >= 0 ? 'positive' : 'negative'}">
-                                ${change >= 0 ? '+' : ''}${changePercent}%
-                            </span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            this.currencyPairs.innerHTML = pairsHTML;
-        } catch (error) {
-            console.error('Error loading major pairs:', error);
-            this.currencyPairs.innerHTML = '<div class="error">Unable to load market data</div>';
-        }
+    showVirtualKeyboard() {
+        this.virtualKeyboard.classList.add('open');
+        this.amountInput.blur(); // Remove focus to prevent double keyboard on iOS
     }
 
-    updateMarketInsights() {
-        const randomInsight = this.marketInsights[Math.floor(Math.random() * this.marketInsights.length)];
-        const volatility = Math.random() * 100;
-        
-        this.marketInsight.innerHTML = `<p>${randomInsight}</p>`;
-        this.volatilityLevel.style.width = `${volatility}%`;
-        
-        if (volatility < 33) {
-            this.volatilityText.textContent = 'Low';
-            this.volatilityLevel.style.background = 'linear-gradient(90deg, #10b981, #10b981)';
-        } else if (volatility < 66) {
-            this.volatilityText.textContent = 'Medium';
-            this.volatilityLevel.style.background = 'linear-gradient(90deg, #10b981, #f59e0b)';
-        } else {
-            this.volatilityText.textContent = 'High';
-            this.volatilityLevel.style.background = 'linear-gradient(90deg, #f59e0b, #ef4444)';
-        }
-    }
-
-    async updateRates() {
-        try {
-            const fromCurrency = this.currencyFrom.value;
-            const toCurrency = this.currencyTo.value;
-            
-            // Update flags
-            this.updateCurrencyFlags();
-            
-            // Calculate current rate
-            const rate = this.calculateRate(fromCurrency, toCurrency);
-            
-            // Update rate display
-            this.currentRate.textContent = `1 ${fromCurrency} = ${rate.toFixed(4)} ${toCurrency}`;
-            this.exchangeRateDisplay.textContent = `1 ${fromCurrency} = ${rate.toFixed(4)} ${toCurrency}`;
-            
-            // Update timestamp
-            this.rateTimestamp.textContent = `Updated: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-            
-        } catch (error) {
-            console.error('Error updating rates:', error);
-            this.currentRate.textContent = 'Error loading rates';
-        }
-    }
-
-    updateCurrencyFlags() {
-        const fromFlag = document.querySelector('#currencyFrom + .currency-selector .flag-icon');
-        const toFlag = document.querySelector('#currencyTo + .currency-selector .flag-icon');
-        
-        if (fromFlag && toFlag) {
-            const fromCurrency = this.currencyFrom.value;
-            const toCurrency = this.currencyTo.value;
-            
-            fromFlag.className = `flag-icon flag-icon-${this.currencies[fromCurrency]?.flag || 'us'}`;
-            toFlag.className = `flag-icon flag-icon-${this.currencies[toCurrency]?.flag || 'br'}`;
-        }
-    }
-
-    calculateRate(fromCurrency, toCurrency) {
-        const fromRate = this.rates[fromCurrency] || 1;
-        const toRate = this.rates[toCurrency] || 1;
-        return toRate / fromRate;
-    }
-
-    formatCurrency(amount, currency, locale = this.settings.numberFormat) {
-        const currencyInfo = this.currencies[currency];
-        const formatter = new Intl.NumberFormat(locale, {
-            style: 'currency',
-            currency: currency,
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-        
-        return formatter.format(amount);
-    }
-
-    async convertCurrency() {
-        const amount = parseFloat(this.amountFrom.value);
-        if (isNaN(amount) || amount <= 0) {
-            this.showNotification('Please enter a valid amount', 'error');
-            return;
-        }
-
-        const fromCurrency = this.currencyFrom.value;
-        const toCurrency = this.currencyTo.value;
-        
-        // Calculate conversion
-        const rate = this.calculateRate(fromCurrency, toCurrency);
-        const convertedAmount = amount * rate;
-        
-        // Update display
-        this.amountTo.value = convertedAmount.toFixed(2);
-        this.sourceAmount.textContent = this.formatCurrency(amount, fromCurrency);
-        this.targetAmount.textContent = this.formatCurrency(convertedAmount, toCurrency);
-        this.finalAmount.textContent = this.formatCurrency(convertedAmount, toCurrency);
-        this.transactionTime.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        
-        // Add to history
-        this.addToHistory({
-            id: Date.now(),
-            fromCurrency,
-            toCurrency,
-            amount,
-            rate,
-            convertedAmount,
-            timestamp: new Date().toISOString()
-        });
-        
-        // Show success animation
-        this.convertBtn.innerHTML = '<i class="fas fa-check"></i> Converted!';
-        this.convertBtn.style.background = 'linear-gradient(45deg, #10b981, #059669)';
-        
-        setTimeout(() => {
-            this.convertBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Convert Now';
-            this.convertBtn.style.background = 'linear-gradient(45deg, #2563eb, #8b5cf6)';
-        }, 2000);
-    }
-
-    updateConversion() {
-        const amount = parseFloat(this.amountFrom.value);
-        if (isNaN(amount) || amount <= 0) return;
-        
-        const fromCurrency = this.currencyFrom.value;
-        const toCurrency = this.currencyTo.value;
-        const rate = this.calculateRate(fromCurrency, toCurrency);
-        const convertedAmount = amount * rate;
-        
-        this.amountTo.value = convertedAmount.toFixed(2);
-    }
-
-    quickConvert() {
-        // Store current values
-        const currentAmount = this.amountFrom.value;
-        const currentFrom = this.currencyFrom.value;
-        const currentTo = this.currencyTo.value;
-        
-        // Perform quick conversion (e.g., USD to all major currencies)
-        this.currencyFrom.value = 'USD';
-        this.updateCurrencyFlags();
-        this.updateRates();
-        this.updateConversion();
-        
-        // Show notification
-        this.showNotification('Quick conversion to major currencies applied', 'info');
-        
-        // Restore after 3 seconds
-        setTimeout(() => {
-            this.currencyFrom.value = currentFrom;
-            this.currencyTo.value = currentTo;
-            this.amountFrom.value = currentAmount;
-            this.updateCurrencyFlags();
-            this.updateRates();
-            this.updateConversion();
-        }, 3000);
-    }
-
-    reverseConversion() {
-        const temp = this.currencyFrom.value;
-        this.currencyFrom.value = this.currencyTo.value;
-        this.currencyTo.value = temp;
-        
-        this.updateCurrencyFlags();
-        this.updateRates();
-        this.updateConversion();
-    }
-
-    swapCurrencies() {
-        this.reverseConversion();
-        
-        // Add rotation animation
-        this.swapButton.style.transform = 'rotate(180deg)';
-        setTimeout(() => {
-            this.swapButton.style.transform = 'rotate(0deg)';
-        }, 300);
-    }
-
-    addToHistory(conversion) {
-        this.conversionHistory.unshift(conversion);
-        
-        // Keep only last 50 conversions
-        if (this.conversionHistory.length > 50) {
-            this.conversionHistory = this.conversionHistory.slice(0, 50);
-        }
-        
-        localStorage.setItem('conversionHistory', JSON.stringify(this.conversionHistory));
-        this.displayHistory();
-    }
-
-    displayHistory() {
-        if (this.conversionHistory.length === 0) {
-            this.historyList.innerHTML = `
-                <div class="empty-history">
-                    <i class="fas fa-exchange-alt"></i>
-                    <p>No conversions yet. Make your first conversion!</p>
-                </div>
-            `;
-            return;
-        }
-
-        const filter = this.historyFilter.value;
-        const timeFilter = this.timeFilter.value;
-        
-        const now = new Date();
-        let filteredHistory = this.conversionHistory;
-        
-        // Apply currency filter
-        if (filter !== 'all') {
-            filteredHistory = filteredHistory.filter(conv => 
-                conv.fromCurrency === filter || conv.toCurrency === filter
-            );
-        }
-        
-        // Apply time filter
-        if (timeFilter !== 'all') {
-            const cutoff = new Date();
-            if (timeFilter === '24h') {
-                cutoff.setHours(now.getHours() - 24);
-            } else if (timeFilter === '7d') {
-                cutoff.setDate(now.getDate() - 7);
-            } else if (timeFilter === '30d') {
-                cutoff.setDate(now.getDate() - 30);
-            }
-            
-            filteredHistory = filteredHistory.filter(conv => 
-                new Date(conv.timestamp) >= cutoff
-            );
-        }
-        
-        const historyHTML = filteredHistory.map(conv => {
-            const date = new Date(conv.timestamp);
-            const timeString = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            const dateString = date.toLocaleDateString([], {month: 'short', day: 'numeric'});
-            
-            return `
-                <div class="history-item">
-                    <div class="history-header">
-                        <div class="history-amounts">
-                            <span class="history-from">${this.formatCurrency(conv.amount, conv.fromCurrency)}</span>
-                            <span class="history-arrow">→</span>
-                            <span class="history-to">${this.formatCurrency(conv.convertedAmount, conv.toCurrency)}</span>
-                        </div>
-                        <span class="history-rate">${conv.rate.toFixed(4)}</span>
-                    </div>
-                    <div class="history-footer">
-                        <span class="history-time">${dateString} at ${timeString}</span>
-                        <span class="history-currencies">${conv.fromCurrency}/${conv.toCurrency}</span>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
-        this.historyList.innerHTML = historyHTML;
-    }
-
-    filterHistory() {
-        this.displayHistory();
-    }
-
-    exportHistory() {
-        if (this.conversionHistory.length === 0) {
-            this.showNotification('No history to export', 'warning');
-            return;
-        }
-        
-        const csv = [
-            ['Date', 'Time', 'From Currency', 'To Currency', 'Amount', 'Rate', 'Converted Amount'],
-            ...this.conversionHistory.map(conv => {
-                const date = new Date(conv.timestamp);
-                return [
-                    date.toLocaleDateString(),
-                    date.toLocaleTimeString(),
-                    conv.fromCurrency,
-                    conv.toCurrency,
-                    conv.amount,
-                    conv.rate,
-                    conv.convertedAmount
+    hideVirtual
