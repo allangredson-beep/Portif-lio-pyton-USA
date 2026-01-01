@@ -1,437 +1,586 @@
-// Professional Responsive Forex Calculator
-class ResponsiveForexCalculator {
+/**
+ * Forex Converter Pro - Professional Currency Converter
+ * Uses Frankfurter API for real-time exchange rates
+ * Built for GitHub Pages deployment
+ */
+
+class CurrencyConverter {
     constructor() {
-        this.init();
-    }
-
-    async init() {
-        // Hide loading screen
-        this.hideLoadingScreen();
-        
-        // Initialize all components
-        this.initElements();
-        this.initState();
-        this.initEventListeners();
-        this.initResponsiveFeatures();
-        this.initVirtualKeyboard();
-        
-        // Load initial data
-        await this.loadMarketData();
-        this.updateDisplay();
-        
-        // Start auto-update
-        this.startAutoUpdate();
-        
-        // Add orientation change handler
-        this.handleOrientationChange();
-    }
-
-    hideLoadingScreen() {
-        const loadingScreen = document.getElementById('loadingScreen');
-        const mainContainer = document.getElementById('mainContainer');
-        
-        setTimeout(() => {
-            loadingScreen.style.opacity = '0';
-            setTimeout(() => {
-                loadingScreen.style.display = 'none';
-                mainContainer.style.display = 'block';
-                this.showToast('Forex Calculator Ready', 'Market data loaded successfully', 'success');
-            }, 300);
-        }, 1000);
-    }
-
-    initElements() {
-        // Input Elements
-        this.amountInput = document.getElementById('amountInput');
-        this.amountOutput = document.getElementById('amountOutput');
-        this.currencyFromSelect = document.getElementById('currencyFromSelect');
-        this.currencyToSelect = document.getElementById('currencyToSelect');
-        
-        // Button Elements
-        this.convertBtn = document.getElementById('convertBtn');
-        this.swapBtn = document.getElementById('swapBtn');
-        this.quickConvertBtn = document.getElementById('quickConvertBtn');
-        this.reverseRate = document.getElementById('reverseRate');
-        this.favoriteRate = document.getElementById('favoriteRate');
-        this.saveConversion = document.getElementById('saveConversion');
-        this.clearAll = document.getElementById('clearAll');
-        this.refreshMarket = document.getElementById('refreshMarket');
-        this.refreshRates = document.getElementById('refreshRates');
-        this.fullscreenBtn = document.getElementById('fullscreenBtn');
-        
-        // Display Elements
-        this.currentRateDisplay = document.getElementById('currentRateDisplay');
-        this.summarySource = document.getElementById('summarySource');
-        this.summaryTarget = document.getElementById('summaryTarget');
-        this.summaryRate = document.getElementById('summaryRate');
-        this.summaryTotal = document.getElementById('summaryTotal');
-        this.conversionTime = document.getElementById('conversionTime');
-        this.marketStatusText = document.getElementById('marketStatusText');
-        this.lastUpdate = document.getElementById('lastUpdate');
-        
-        // Mobile Elements
-        this.mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        this.mobileSidebar = document.getElementById('mobileSidebar');
-        this.closeSidebar = document.getElementById('closeSidebar');
-        this.mobileSettingsBtn = document.getElementById('mobileSettingsBtn');
-        this.mobileSettingsPanel = document.getElementById('mobileSettingsPanel');
-        this.closeSettings = document.getElementById('closeSettings');
-        this.mobileNav = document.querySelectorAll('.nav-btn');
-        this.mobileConvertBtn = document.getElementById('mobileConvertBtn');
-        
-        // Preset Elements
-        this.presetButtons = document.querySelectorAll('.preset');
-        this.quickActions = document.querySelectorAll('.quick-action');
-        
-        // Tool Elements
-        this.toolButtons = document.querySelectorAll('.tool-btn');
-        
-        // Market Elements
-        this.marketPairs = document.getElementById('marketPairs');
-        
-        // Toast Container
-        this.toastContainer = document.getElementById('toastContainer');
-        
-        // Virtual Keyboard
-        this.virtualKeyboard = document.getElementById('virtualKeyboard');
-        this.closeKeyboard = document.getElementById('closeKeyboard');
-        
-        // Settings Elements
-        this.mobileDarkMode = document.getElementById('mobileDarkMode');
-        this.mobileAutoUpdate = document.getElementById('mobileAutoUpdate');
-        this.mobileNotifications = document.getElementById('mobileNotifications');
-    }
-
-    initState() {
-        // Currency data
-        this.currencies = {
-            'USD': { name: 'US Dollar', flag: 'us', symbol: '$' },
-            'EUR': { name: 'Euro', flag: 'eu', symbol: '€' },
-            'GBP': { name: 'British Pound', flag: 'gb', symbol: '£' },
-            'JPY': { name: 'Japanese Yen', flag: 'jp', symbol: '¥' },
-            'CAD': { name: 'Canadian Dollar', flag: 'ca', symbol: 'C$' },
-            'AUD': { name: 'Australian Dollar', flag: 'au', symbol: 'A$' },
-            'CHF': { name: 'Swiss Franc', flag: 'ch', symbol: 'CHF' },
-            'CNY': { name: 'Chinese Yuan', flag: 'cn', symbol: '¥' },
-            'BRL': { name: 'Brazilian Real', flag: 'br', symbol: 'R$' },
-            'MXN': { name: 'Mexican Peso', flag: 'mx', symbol: '$' },
-            'INR': { name: 'Indian Rupee', flag: 'in', symbol: '₹' },
-            'RUB': { name: 'Russian Ruble', flag: 'ru', symbol: '₽' },
-            'ZAR': { name: 'South African Rand', flag: 'za', symbol: 'R' },
-            'TRY': { name: 'Turkish Lira', flag: 'tr', symbol: '₺' },
-            'KRW': { name: 'South Korean Won', flag: 'kr', symbol: '₩' }
-        };
-
-        // Current rates (simulated - in production would be from API)
-        this.rates = {
-            'USD': 1,
-            'EUR': 0.92,
-            'GBP': 0.79,
-            'JPY': 149.50,
-            'CAD': 1.36,
-            'AUD': 1.52,
-            'CHF': 0.88,
-            'CNY': 7.15,
-            'BRL': 5.15,
-            'MXN': 18.50,
-            'INR': 83.25,
-            'RUB': 95.80,
-            'ZAR': 19.25,
-            'TRY': 28.75,
-            'KRW': 1325.50
-        };
-
-        // Major currency pairs
-        this.majorPairs = [
-            { from: 'EUR', to: 'USD', name: 'EUR/USD' },
-            { from: 'USD', to: 'JPY', name: 'USD/JPY' },
-            { from: 'GBP', to: 'USD', name: 'GBP/USD' },
-            { from: 'USD', to: 'CHF', name: 'USD/CHF' },
-            { from: 'USD', to: 'CAD', name: 'USD/CAD' },
-            { from: 'AUD', to: 'USD', name: 'AUD/USD' },
-            { from: 'NZD', to: 'USD', name: 'NZD/USD' },
-            { from: 'EUR', to: 'GBP', name: 'EUR/GBP' },
-            { from: 'EUR', to: 'JPY', name: 'EUR/JPY' },
-            { from: 'GBP', to: 'JPY', name: 'GBP/JPY' }
+        // API Configuration
+        this.API_BASE = 'https://api.frankfurter.app';
+        this.SUPPORTED_CURRENCIES = [
+            { code: 'USD', name: 'US Dollar', symbol: '$', emoji: '🇺🇸' },
+            { code: 'EUR', name: 'Euro', symbol: '€', emoji: '🇪🇺' },
+            { code: 'GBP', name: 'British Pound', symbol: '£', emoji: '🇬🇧' },
+            { code: 'JPY', name: 'Japanese Yen', symbol: '¥', emoji: '🇯🇵' },
+            { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$', emoji: '🇨🇦' },
+            { code: 'AUD', name: 'Australian Dollar', symbol: 'A$', emoji: '🇦🇺' },
+            { code: 'CHF', name: 'Swiss Franc', symbol: 'CHF', emoji: '🇨🇭' },
+            { code: 'CNY', name: 'Chinese Yuan', symbol: '¥', emoji: '🇨🇳' },
+            { code: 'INR', name: 'Indian Rupee', symbol: '₹', emoji: '🇮🇳' },
+            { code: 'BRL', name: 'Brazilian Real', symbol: 'R$', emoji: '🇧🇷' },
+            { code: 'MXN', name: 'Mexican Peso', symbol: '$', emoji: '🇲🇽' },
+            { code: 'KRW', name: 'South Korean Won', symbol: '₩', emoji: '🇰🇷' },
+            { code: 'RUB', name: 'Russian Ruble', symbol: '₽', emoji: '🇷🇺' },
+            { code: 'ZAR', name: 'South African Rand', symbol: 'R', emoji: '🇿🇦' },
+            { code: 'TRY', name: 'Turkish Lira', symbol: '₺', emoji: '🇹🇷' },
+            { code: 'NZD', name: 'New Zealand Dollar', symbol: 'NZ$', emoji: '🇳🇿' },
+            { code: 'SGD', name: 'Singapore Dollar', symbol: 'S$', emoji: '🇸🇬' },
+            { code: 'HKD', name: 'Hong Kong Dollar', symbol: 'HK$', emoji: '🇭🇰' },
+            { code: 'SEK', name: 'Swedish Krona', symbol: 'kr', emoji: '🇸🇪' },
+            { code: 'NOK', name: 'Norwegian Krone', symbol: 'kr', emoji: '🇳🇴' }
         ];
 
         // State
-        this.conversionHistory = JSON.parse(localStorage.getItem('forexHistory')) || [];
-        this.favoritePairs = JSON.parse(localStorage.getItem('favoritePairs')) || [];
-        this.settings = JSON.parse(localStorage.getItem('forexSettings')) || this.getDefaultSettings();
-        
-        // Update interval
-        this.updateInterval = null;
-        this.lastUpdateTime = new Date();
-        
-        // Mobile state
-        this.isMobile = this.checkIfMobile();
-        this.isTablet = this.checkIfTablet();
-        this.currentSection = 'converter';
-    }
+        this.exchangeRates = {};
+        this.lastUpdate = null;
+        this.isLoading = false;
+        this.currentBase = 'USD';
+        this.currentTarget = 'EUR';
 
-    getDefaultSettings() {
-        return {
-            darkMode: true,
-            autoUpdate: true,
-            notifications: false,
-            updateInterval: 60, // seconds
-            defaultAmount: 1000,
-            favoriteCurrencies: ['USD', 'EUR', 'GBP', 'BRL'],
-            numberFormat: 'en-US'
+        // DOM Elements
+        this.elements = {
+            amountInput: document.getElementById('amountInput'),
+            fromCurrency: document.getElementById('fromCurrency'),
+            toCurrency: document.getElementById('toCurrency'),
+            convertedAmount: document.getElementById('convertedAmount'),
+            exchangeRate: document.getElementById('exchangeRate'),
+            baseSymbol: document.getElementById('baseSymbol'),
+            targetSymbol: document.getElementById('targetSymbol'),
+            targetCurrency: document.getElementById('targetCurrency'),
+            updateTime: document.getElementById('updateTime'),
+            rateTimestamp: document.getElementById('rateTimestamp'),
+            lastUpdated: document.getElementById('lastUpdated'),
+            copyBtn: document.getElementById('copyBtn'),
+            swapBtn: document.getElementById('swapBtn'),
+            refreshBtn: document.getElementById('refreshBtn'),
+            popularCurrencies: document.getElementById('popularCurrencies'),
+            currencySymbols: document.getElementById('currencySymbols'),
+            supportedCount: document.getElementById('supportedCount'),
+            toast: document.getElementById('toast'),
+            toastMessage: document.getElementById('toastMessage'),
+            toastDetail: document.getElementById('toastDetail'),
+            loadingOverlay: document.getElementById('loadingOverlay')
         };
+
+        // Initialize
+        this.init();
     }
 
-    initEventListeners() {
-        // Conversion events
-        this.convertBtn.addEventListener('click', () => this.performConversion());
-        this.swapBtn.addEventListener('click', () => this.swapCurrencies());
-        this.quickConvertBtn.addEventListener('click', () => this.quickConvert());
-        this.reverseRate.addEventListener('click', () => this.reverseRate());
-        this.favoriteRate.addEventListener('click', () => this.toggleFavorite());
-        this.saveConversion.addEventListener('click', () => this.saveToHistory());
-        this.clearAll.addEventListener('click', () => this.clearConversion());
+    /**
+     * Initialize the application
+     */
+    async init() {
+        // Show loading overlay
+        this.showLoading();
         
-        // Input events
-        this.amountInput.addEventListener('input', () => this.updateConversion());
-        this.currencyFromSelect.addEventListener('change', () => this.updateRate());
-        this.currencyToSelect.addEventListener('change', () => this.updateRate());
-        
-        // Mobile events
-        this.mobileMenuBtn.addEventListener('click', () => this.toggleSidebar());
-        this.closeSidebar.addEventListener('click', () => this.closeSidebarMenu());
-        this.mobileSettingsBtn.addEventListener('click', () => this.toggleSettingsPanel());
-        this.closeSettings.addEventListener('click', () => this.closeSettingsPanel());
-        this.mobileConvertBtn.addEventListener('click', () => this.performConversion());
-        
-        // Navigation events
-        this.mobileNav.forEach(btn => {
-            btn.addEventListener('click', (e) => this.switchSection(e.currentTarget.dataset.section));
-        });
-        
-        // Preset events
-        this.presetButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => this.setPresetAmount(e.currentTarget.dataset.amount));
-        });
-        
-        this.quickActions.forEach(btn => {
-            btn.addEventListener('click', (e) => this.setPresetAmount(e.currentTarget.dataset.preset));
-        });
-        
-        // Tool events
-        this.toolButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => this.handleToolClick(e.currentTarget.dataset.tool));
-        });
-        
-        // Market refresh
-        this.refreshMarket.addEventListener('click', () => this.loadMarketData());
-        this.refreshRates.addEventListener('click', () => this.updateRate());
-        
-        // Fullscreen
-        this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
-        
-        // Touch events for mobile
-        this.initTouchEvents();
-        
-        // Keyboard events
-        this.initKeyboardEvents();
-    }
-
-    initResponsiveFeatures() {
-        // Check device type
-        this.updateDeviceType();
-        
-        // Listen for resize
-        window.addEventListener('resize', () => {
-            this.updateDeviceType();
-            this.adjustLayout();
-        });
-        
-        // Initial layout adjustment
-        this.adjustLayout();
-        
-        // Add touch-friendly styles for mobile
-        if (this.isMobile) {
-            this.makeTouchFriendly();
+        try {
+            // Populate currency dropdowns
+            this.populateCurrencyDropdowns();
+            
+            // Load initial exchange rates
+            await this.fetchExchangeRates();
+            
+            // Set up event listeners
+            this.setupEventListeners();
+            
+            // Update UI
+            this.updateUI();
+            
+            // Hide loading overlay
+            setTimeout(() => {
+                this.hideLoading();
+                this.showToast('Ready to convert!', 'Latest exchange rates loaded');
+            }, 1000);
+            
+        } catch (error) {
+            console.error('Initialization error:', error);
+            this.showToast('Error loading data', 'Please check your connection', 'error');
+            this.hideLoading();
         }
     }
 
-    checkIfMobile() {
-        return window.innerWidth <= 768;
-    }
-
-    checkIfTablet() {
-        return window.innerWidth > 768 && window.innerWidth <= 1024;
-    }
-
-    updateDeviceType() {
-        this.isMobile = this.checkIfMobile();
-        this.isTablet = this.checkIfTablet();
+    /**
+     * Populate currency dropdowns with supported currencies
+     */
+    populateCurrencyDropdowns() {
+        const fromSelect = this.elements.fromCurrency;
+        const toSelect = this.elements.toCurrency;
         
-        // Update body class for CSS targeting
-        document.body.classList.toggle('mobile', this.isMobile);
-        document.body.classList.toggle('tablet', this.isTablet);
-        document.body.classList.toggle('desktop', !this.isMobile && !this.isTablet);
-    }
-
-    adjustLayout() {
-        // Adjust font sizes for mobile
-        const baseFontSize = this.isMobile ? '14px' : '16px';
-        document.documentElement.style.fontSize = baseFontSize;
+        // Clear existing options
+        fromSelect.innerHTML = '';
+        toSelect.innerHTML = '';
         
-        // Adjust spacing for mobile
-        const spacingMultiplier = this.isMobile ? 0.8 : 1;
-        
-        // Update CSS variables
-        document.documentElement.style.setProperty('--space-sm', `${0.5 * spacingMultiplier}rem`);
-        document.documentElement.style.setProperty('--space-md', `${1 * spacingMultiplier}rem`);
-        document.documentElement.style.setProperty('--space-lg', `${1.5 * spacingMultiplier}rem`);
-        document.documentElement.style.setProperty('--space-xl', `${2 * spacingMultiplier}rem`);
-    }
-
-    makeTouchFriendly() {
-        // Increase touch targets
-        const touchElements = document.querySelectorAll('button, input, select, .preset, .tool-btn');
-        touchElements.forEach(el => {
-            if (!el.classList.contains('touch-optimized')) {
-                el.classList.add('touch-optimized');
-                // Ensure minimum touch target size
-                if (el.tagName === 'BUTTON' || el.classList.contains('preset') || el.classList.contains('tool-btn')) {
-                    el.style.minHeight = '44px';
-                    el.style.minWidth = '44px';
-                }
-            }
+        // Add options for each currency
+        this.SUPPORTED_CURRENCIES.forEach(currency => {
+            const optionFrom = document.createElement('option');
+            optionFrom.value = currency.code;
+            optionFrom.textContent = `${currency.emoji} ${currency.code} - ${currency.name}`;
+            optionFrom.selected = currency.code === 'USD';
+            
+            const optionTo = document.createElement('option');
+            optionTo.value = currency.code;
+            optionTo.textContent = `${currency.emoji} ${currency.code} - ${currency.name}`;
+            optionTo.selected = currency.code === 'EUR';
+            
+            fromSelect.appendChild(optionFrom);
+            toSelect.appendChild(optionTo);
         });
         
-        // Add touch feedback
-        document.addEventListener('touchstart', () => {}, { passive: true });
+        // Update supported count display
+        this.elements.supportedCount.textContent = `${this.SUPPORTED_CURRENCIES.length} currencies supported`;
         
-        // Prevent zoom on input focus for iOS
-        document.addEventListener('touchstart', (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
-                document.body.style.zoom = '100%';
-            }
-        });
+        // Populate popular currencies
+        this.populatePopularCurrencies();
+        
+        // Populate currency symbols
+        this.populateCurrencySymbols();
     }
 
-    initTouchEvents() {
-        // Swipe gestures for mobile
-        let touchStartX = 0;
-        let touchEndX = 0;
+    /**
+     * Populate popular currencies section
+     */
+    populatePopularCurrencies() {
+        const popular = this.SUPPORTED_CURRENCIES.slice(0, 6); // First 6 currencies
+        const container = this.elements.popularCurrencies;
         
-        document.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-        }, { passive: true });
-        
-        document.addEventListener('touchend', (e) => {
-            touchEndX = e.changedTouches[0].screenX;
-            this.handleSwipe(touchStartX, touchEndX);
-        }, { passive: true });
+        container.innerHTML = popular.map(currency => `
+            <div class="glass-dark rounded-lg p-3 flex items-center gap-3">
+                <span class="text-xl">${currency.emoji}</span>
+                <div>
+                    <div class="font-medium">${currency.code}</div>
+                    <div class="text-xs text-gray-400">${currency.name}</div>
+                </div>
+            </div>
+        `).join('');
     }
 
-    handleSwipe(startX, endX) {
-        const swipeThreshold = 50;
-        const swipeDistance = endX - startX;
+    /**
+     * Populate currency symbols section
+     */
+    populateCurrencySymbols() {
+        const symbols = this.SUPPORTED_CURRENCIES.slice(0, 8); // First 8 symbols
+        const container = this.elements.currencySymbols;
         
-        if (Math.abs(swipeDistance) > swipeThreshold) {
-            if (swipeDistance > 0 && this.currentSection !== 'converter') {
-                // Swipe right - go to previous section
-                const sections = ['converter', 'market', 'history', 'calculator', 'more'];
-                const currentIndex = sections.indexOf(this.currentSection);
-                if (currentIndex > 0) {
-                    this.switchSection(sections[currentIndex - 1]);
-                }
-            } else if (swipeDistance < 0 && this.currentSection !== 'more') {
-                // Swipe left - go to next section
-                const sections = ['converter', 'market', 'history', 'calculator', 'more'];
-                const currentIndex = sections.indexOf(this.currentSection);
-                if (currentIndex < sections.length - 1) {
-                    this.switchSection(sections[currentIndex + 1]);
-                }
+        container.innerHTML = symbols.map(currency => `
+            <div class="glass-dark rounded-lg p-3 flex items-center justify-between">
+                <div class="font-medium">${currency.code}</div>
+                <div class="text-xl font-bold">${currency.symbol}</div>
+            </div>
+        `).join('');
+    }
+
+    /**
+     * Fetch latest exchange rates from Frankfurter API
+     */
+    async fetchExchangeRates() {
+        try {
+            this.isLoading = true;
+            this.updateStatus('Fetching latest rates...');
+            
+            // Fetch rates for all supported currencies from USD
+            const response = await fetch(`${this.API_BASE}/latest?from=USD`);
+            
+            if (!response.ok) {
+                throw new Error(`API Error: ${response.status}`);
             }
+            
+            const data = await response.json();
+            
+            // Store rates
+            this.exchangeRates = data.rates;
+            this.lastUpdate = new Date();
+            
+            // Update status
+            this.updateStatus('Rates updated');
+            this.updateTimestamp();
+            
+            return data.rates;
+            
+        } catch (error) {
+            console.error('Error fetching exchange rates:', error);
+            
+            // Fallback to static rates if API fails
+            this.exchangeRates = {
+                EUR: 0.92,
+                GBP: 0.79,
+                JPY: 149.50,
+                CAD: 1.36,
+                AUD: 1.52,
+                CHF: 0.88,
+                CNY: 7.15,
+                INR: 83.25,
+                BRL: 5.15,
+                MXN: 18.50,
+                KRW: 1325.50,
+                RUB: 95.80,
+                ZAR: 19.25,
+                TRY: 28.75,
+                NZD: 1.65,
+                SGD: 1.35,
+                HKD: 7.82,
+                SEK: 10.65,
+                NOK: 10.95
+            };
+            
+            this.lastUpdate = new Date();
+            this.updateStatus('Using cached rates', 'warning');
+            
+            return this.exchangeRates;
+            
+        } finally {
+            this.isLoading = false;
         }
     }
 
-    initKeyboardEvents() {
-        // Virtual keyboard for mobile
-        this.amountInput.addEventListener('focus', () => {
-            if (this.isMobile) {
-                this.showVirtualKeyboard();
+    /**
+     * Convert currency based on current selections
+     */
+    convertCurrency() {
+        try {
+            // Get input values
+            const amount = parseFloat(this.elements.amountInput.value) || 0;
+            const fromCurrency = this.elements.fromCurrency.value;
+            const toCurrency = this.elements.toCurrency.value;
+            
+            // Update current state
+            this.currentBase = fromCurrency;
+            this.currentTarget = toCurrency;
+            
+            // Get currency info
+            const fromCurrencyInfo = this.SUPPORTED_CURRENCIES.find(c => c.code === fromCurrency);
+            const toCurrencyInfo = this.SUPPORTED_CURRENCIES.find(c => c.code === toCurrency);
+            
+            // Update symbols
+            this.elements.baseSymbol.textContent = fromCurrencyInfo?.symbol || '$';
+            this.elements.targetSymbol.textContent = toCurrencyInfo?.symbol || '€';
+            this.elements.targetCurrency.textContent = toCurrency;
+            
+            if (amount <= 0) {
+                this.elements.convertedAmount.textContent = '0.00';
+                this.elements.exchangeRate.textContent = `1 ${fromCurrency} = 0.00 ${toCurrency}`;
+                return;
             }
-        });
-        
-        this.closeKeyboard.addEventListener('click', () => {
-            this.hideVirtualKeyboard();
-        });
-        
-        // Handle physical keyboard
-        document.addEventListener('keydown', (e) => {
-            if (e.target === this.amountInput) {
-                // Prevent default for arrow keys in virtual keyboard mode
-                if (this.isMobile && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                    e.preventDefault();
-                }
+            
+            // If converting from USD, use direct rate
+            if (fromCurrency === 'USD') {
+                const rate = this.exchangeRates[toCurrency] || 1;
+                const converted = amount * rate;
                 
-                // Enter key to convert
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    this.performConversion();
-                }
+                this.elements.convertedAmount.textContent = this.formatNumber(converted, toCurrency);
+                this.elements.exchangeRate.textContent = `1 ${fromCurrency} = ${this.formatNumber(rate, toCurrency, 4)} ${toCurrency}`;
+                
+            } else if (toCurrency === 'USD') {
+                // If converting to USD, need to invert the rate
+                const rate = 1 / (this.exchangeRates[fromCurrency] || 1);
+                const converted = amount * rate;
+                
+                this.elements.convertedAmount.textContent = this.formatNumber(converted, toCurrency);
+                this.elements.exchangeRate.textContent = `1 ${fromCurrency} = ${this.formatNumber(rate, toCurrency, 4)} ${toCurrency}`;
+                
+            } else {
+                // Convert from currency A to B via USD
+                const rateFromUSD = this.exchangeRates[fromCurrency] || 1;
+                const rateToUSD = this.exchangeRates[toCurrency] || 1;
+                const rate = rateToUSD / rateFromUSD;
+                const converted = amount * rate;
+                
+                this.elements.convertedAmount.textContent = this.formatNumber(converted, toCurrency);
+                this.elements.exchangeRate.textContent = `1 ${fromCurrency} = ${this.formatNumber(rate, toCurrency, 4)} ${toCurrency}`;
             }
-        });
+            
+        } catch (error) {
+            console.error('Conversion error:', error);
+            this.showToast('Conversion error', 'Please try again', 'error');
+        }
     }
 
-    initVirtualKeyboard() {
-        const keyboardKeys = document.querySelector('.keyboard-keys');
-        const keys = [
-            '1', '2', '3',
-            '4', '5', '6',
-            '7', '8', '9',
-            '.', '0', '⌫'
-        ];
+    /**
+     * Swap the from and to currencies
+     */
+    swapCurrencies() {
+        const fromValue = this.elements.fromCurrency.value;
+        const toValue = this.elements.toCurrency.value;
         
-        keyboardKeys.innerHTML = keys.map(key => 
-            `<button class="key ${key === '⌫' ? 'function' : ''}" data-key="${key}">${key}</button>`
-        ).join('');
+        // Swap values
+        this.elements.fromCurrency.value = toValue;
+        this.elements.toCurrency.value = fromValue;
         
-        // Add keyboard event listeners
-        keyboardKeys.addEventListener('click', (e) => {
-            if (e.target.classList.contains('key')) {
-                const key = e.target.dataset.key;
-                this.handleKeyboardInput(key);
-            }
-        });
+        // Trigger conversion
+        this.convertCurrency();
+        
+        // Show feedback
+        this.showToast('Currencies swapped', 'Conversion updated');
     }
 
-    handleKeyboardInput(key) {
-        const input = this.amountInput;
-        const start = input.selectionStart;
-        const end = input.selectionEnd;
-        const value = input.value;
+    /**
+     * Copy result to clipboard
+     */
+    async copyToClipboard() {
+        try {
+            const amount = this.elements.amountInput.value || '0';
+            const fromCurrency = this.elements.fromCurrency.value;
+            const toCurrency = this.elements.toCurrency.value;
+            const result = this.elements.convertedAmount.textContent;
+            const rate = this.elements.exchangeRate.textContent;
+            
+            const textToCopy = `💱 Currency Conversion:
+${amount} ${fromCurrency} = ${result} ${toCurrency}
+Rate: ${rate}
+Generated via Forex Converter Pro`;
+            
+            await navigator.clipboard.writeText(textToCopy);
+            
+            this.showToast('Copied to clipboard!', 'Ready to paste anywhere');
+            
+        } catch (error) {
+            console.error('Copy error:', error);
+            this.showToast('Copy failed', 'Please try again', 'error');
+        }
+    }
+
+    /**
+     * Set up all event listeners
+     */
+    setupEventListeners() {
+        // Amount input
+        this.elements.amountInput.addEventListener('input', () => {
+            this.convertCurrency();
+        });
         
-        if (key === '⌫') {
-            // Backspace
-            input.value = value.substring(0, start - 1) + value.substring(end);
-            input.selectionStart = input.selectionEnd = start - 1;
-        } else if (key === '.') {
-            // Only allow one decimal point
-            if (!value.includes('.')) {
-                input.value = value.substring(0, start) + key + value.substring(end);
-                input.selectionStart = input.selectionEnd = start + 1;
+        // Currency select changes
+        this.elements.fromCurrency.addEventListener('change', () => {
+            this.convertCurrency();
+        });
+        
+        this.elements.toCurrency.addEventListener('change', () => {
+            this.convertCurrency();
+        });
+        
+        // Quick amount buttons
+        document.querySelectorAll('.quick-amount').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const amount = e.target.dataset.amount;
+                this.elements.amountInput.value = amount;
+                this.elements.amountInput.focus();
+                this.convertCurrency();
+                this.showToast(`Amount set to $${amount}`, 'Ready to convert');
+            });
+        });
+        
+        // Copy button
+        this.elements.copyBtn.addEventListener('click', () => {
+            this.copyToClipboard();
+        });
+        
+        // Swap button
+        this.elements.swapBtn.addEventListener('click', () => {
+            this.swapCurrencies();
+        });
+        
+        // Refresh button
+        this.elements.refreshBtn.addEventListener('click', async () => {
+            await this.refreshRates();
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + R to refresh
+            if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+                e.preventDefault();
+                this.refreshRates();
             }
+            
+            // Ctrl/Cmd + C to copy when result is focused
+            if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+                this.copyToClipboard();
+            }
+            
+            // Space to swap currencies
+            if (e.code === 'Space' && !e.target.matches('input, select, textarea')) {
+                e.preventDefault();
+                this.swapCurrencies();
+            }
+        });
+        
+        // Auto-refresh every 5 minutes
+        setInterval(() => {
+            this.refreshRates();
+        }, 5 * 60 * 1000); // 5 minutes
+    }
+
+    /**
+     * Refresh exchange rates
+     */
+    async refreshRates() {
+        if (this.isLoading) return;
+        
+        this.showLoading();
+        await this.fetchExchangeRates();
+        this.convertCurrency();
+        this.hideLoading();
+        
+        this.showToast('Rates refreshed', 'Latest exchange rates loaded');
+    }
+
+    /**
+     * Update the status display
+     */
+    updateStatus(message, type = 'success') {
+        const statusElement = this.elements.updateTime;
+        const indicator = this.elements.lastUpdated.querySelector('.w-2');
+        
+        if (type === 'warning') {
+            indicator.className = 'w-2 h-2 bg-yellow-500 rounded-full animate-pulse-slow';
+        } else if (type === 'error') {
+            indicator.className = 'w-2 h-2 bg-red-500 rounded-full animate-pulse-slow';
         } else {
-            // Regular number
-            input.value = value.substring(0, start) + key + value.substring(end);
-            input.selectionStart = input.selectionEnd = start + 1;
+            indicator.className = 'w-2 h-2 bg-green-500 rounded-full animate-pulse-slow';
         }
         
-        // Trigger input event
-        input.dispatchEvent(new Event('input'));
+        statusElement.textContent = message;
+        this.updateTimestamp();
     }
 
-    showVirtualKeyboard() {
-        this.virtualKeyboard.classList.add('open');
-        this.amountInput.blur(); // Remove focus to prevent double keyboard on iOS
+    /**
+     * Update the timestamp display
+     */
+    updateTimestamp() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        
+        this.elements.rateTimestamp.textContent = timeString;
+        
+        // Format for last updated
+        const dateString = now.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        
+        this.elements.updateTime.textContent = `${dateString} ${timeString}`;
     }
 
-    hideVirtual
+    /**
+     * Update the entire UI
+     */
+    updateUI() {
+        this.convertCurrency();
+        this.updateTimestamp();
+    }
+
+    /**
+     * Show toast notification
+     */
+    showToast(message, detail = '', type = 'success') {
+        const toast = this.elements.toast;
+        const icon = toast.querySelector('i');
+        
+        // Update message
+        this.elements.toastMessage.textContent = message;
+        this.elements.toastDetail.textContent = detail;
+        
+        // Update icon based on type
+        if (type === 'error') {
+            icon.className = 'fas fa-exclamation-circle text-xl';
+            icon.parentElement.className = 'text-red-400';
+        } else if (type === 'warning') {
+            icon.className = 'fas fa-exclamation-triangle text-xl';
+            icon.parentElement.className = 'text-yellow-400';
+        } else {
+            icon.className = 'fas fa-check-circle text-xl';
+            icon.parentElement.className = 'text-green-400';
+        }
+        
+        // Show toast
+        toast.classList.remove('translate-y-20');
+        toast.classList.add('translate-y-0');
+        
+        // Hide after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('translate-y-0');
+            toast.classList.add('translate-y-20');
+        }, 3000);
+    }
+
+    /**
+     * Show loading overlay
+     */
+    showLoading() {
+        this.elements.loadingOverlay.classList.remove('opacity-0');
+        this.elements.loadingOverlay.classList.add('opacity-100');
+    }
+
+    /**
+     * Hide loading overlay
+     */
+    hideLoading() {
+        this.elements.loadingOverlay.classList.remove('opacity-100');
+        this.elements.loadingOverlay.classList.add('opacity-0');
+        
+        // Remove from DOM after animation
+        setTimeout(() => {
+            this.elements.loadingOverlay.style.display = 'none';
+        }, 500);
+    }
+
+    /**
+     * Format number with currency-specific formatting
+     */
+    formatNumber(number, currencyCode = 'USD', decimals = 2) {
+        try {
+            const currencyInfo = this.SUPPORTED_CURRENCIES.find(c => c.code === currencyCode);
+            const locale = currencyInfo?.locale || 'en-US';
+            
+            return new Intl.NumberFormat(locale, {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            }).format(number);
+            
+        } catch (error) {
+            // Fallback formatting
+            return number.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+    }
+}
+
+// Initialize the application when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Create and initialize the converter
+    const converter = new CurrencyConverter();
+    
+    // Make converter available globally for debugging (optional)
+    window.currencyConverter = converter;
+    
+    // Add service worker for PWA capabilities (optional)
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(console.error);
+    }
+});
+
+// Add offline detection
+window.addEventListener('online', () => {
+    const event = new CustomEvent('toast', {
+        detail: {
+            message: 'Back online!',
+            detail: 'Refreshing exchange rates...',
+            type: 'success'
+        }
+    });
+    window.dispatchEvent(event);
+});
+
+window.addEventListener('offline', () => {
+    const event = new CustomEvent('toast', {
+        detail: {
+            message: 'You are offline',
+            detail: 'Using cached exchange rates',
+            type: 'warning'
+        }
+    });
+    window.dispatchEvent(event);
+});

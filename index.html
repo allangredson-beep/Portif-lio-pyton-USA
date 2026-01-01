@@ -2,478 +2,475 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Global Forex Calculator | Professional Multi-Currency Tool</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forex Converter Pro | Real-time Currency Exchange</title>
+    <meta name="description" content="Professional real-time currency converter with live exchange rates using Frankfurter API">
+    <meta name="keywords" content="currency converter, forex, exchange rates, financial tools">
+    <meta name="author" content="Professional Developer Portfolio">
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css">
-    <!-- Meta tags para mobile -->
-    <meta name="theme-color" content="#0f172a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💱</text></svg>">
+    
+    <!-- Custom Styles -->
+    <style>
+        /* Glassmorphism Effects */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass-dark {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Custom Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            border-radius: 4px;
+        }
+        
+        /* Gradient Text */
+        .gradient-text {
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Input Number Hide Arrows */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+            .mobile-stack {
+                flex-direction: column;
+            }
+            
+            .mobile-full {
+                width: 100% !important;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            .print-only {
+                display: block !important;
+            }
+        }
+    </style>
 </head>
-<body>
-    <!-- Loading Screen para Mobile -->
-    <div class="loading-screen" id="loadingScreen">
-        <div class="loading-content">
-            <div class="loading-spinner">
-                <i class="fas fa-coins"></i>
-            </div>
-            <p>Loading Forex Calculator...</p>
-            <div class="market-status-loading">
-                <span class="market-dot"></span>
-                Connecting to market data
-            </div>
-        </div>
-    </div>
-
-    <div class="container" id="mainContainer">
-        <!-- Mobile Header -->
-        <div class="mobile-header">
-            <button class="mobile-menu-btn" id="mobileMenuBtn">
-                <i class="fas fa-bars"></i>
-            </button>
-            <div class="mobile-logo">
-                <i class="fas fa-chart-line"></i>
-                <span>ForexCalc Pro</span>
-            </div>
-            <button class="mobile-settings-btn" id="mobileSettingsBtn">
-                <i class="fas fa-cog"></i>
-            </button>
-        </div>
-
-        <!-- Mobile Sidebar Menu -->
-        <div class="mobile-sidebar" id="mobileSidebar">
-            <div class="sidebar-header">
-                <h3>Navigation</h3>
-                <button class="close-sidebar" id="closeSidebar">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="sidebar-menu">
-                <a href="#" class="sidebar-item active" data-tab="converter">
-                    <i class="fas fa-exchange-alt"></i>
-                    <span>Converter</span>
-                </a>
-                <a href="#" class="sidebar-item" data-tab="market">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Market Data</span>
-                </a>
-                <a href="#" class="sidebar-item" data-tab="history">
-                    <i class="fas fa-history"></i>
-                    <span>History</span>
-                </a>
-                <a href="#" class="sidebar-item" data-tab="calculator">
-                    <i class="fas fa-calculator"></i>
-                    <span>Calculator</span>
-                </a>
-                <a href="#" class="sidebar-item" data-tab="insights">
-                    <i class="fas fa-lightbulb"></i>
-                    <span>Insights</span>
-                </a>
-                <div class="sidebar-divider"></div>
-                <a href="#" class="sidebar-item" data-tab="settings">
-                    <i class="fas fa-sliders-h"></i>
-                    <span>Settings</span>
-                </a>
-                <a href="#" class="sidebar-item">
-                    <i class="fas fa-question-circle"></i>
-                    <span>Help</span>
-                </a>
-            </div>
-            <div class="sidebar-footer">
-                <div class="market-status-sidebar">
-                    <span class="status-dot open"></span>
-                    <span>Market: OPEN</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mobile Settings Panel -->
-        <div class="mobile-settings-panel" id="mobileSettingsPanel">
-            <div class="settings-header">
-                <h3>Quick Settings</h3>
-                <button class="close-settings" id="closeSettings">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="settings-content">
-                <div class="setting-item">
-                    <span>Dark Mode</span>
-                    <label class="switch">
-                        <input type="checkbox" id="mobileDarkMode">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="setting-item">
-                    <span>Auto Update</span>
-                    <label class="switch">
-                        <input type="checkbox" id="mobileAutoUpdate" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="setting-item">
-                    <span>Notifications</span>
-                    <label class="switch">
-                        <input type="checkbox" id="mobileNotifications">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="setting-divider"></div>
-                <button class="setting-action-btn">
-                    <i class="fas fa-download"></i>
-                    Export Data
-                </button>
-                <button class="setting-action-btn">
-                    <i class="fas fa-trash"></i>
-                    Clear History
-                </button>
-            </div>
-        </div>
-
-        <!-- Main Header -->
-        <header class="main-header">
-            <div class="header-left">
-                <div class="logo">
-                    <i class="fas fa-globe-americas"></i>
-                    <div class="logo-text">
-                        <h1>Global Forex Calculator</h1>
-                        <p class="tagline">Professional Multi-Currency Tool</p>
+<body class="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-gray-100">
+    <!-- Main Container -->
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="glass py-6 px-4">
+            <div class="container mx-auto max-w-6xl">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="text-center md:text-left">
+                        <h1 class="text-3xl md:text-4xl font-bold gradient-text mb-2">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            Forex Converter Pro
+                        </h1>
+                        <p class="text-gray-300 text-sm md:text-base">
+                            Professional real-time currency converter with live exchange rates
+                        </p>
                     </div>
-                </div>
-            </div>
-            <div class="header-right">
-                <div class="market-status-header">
-                    <div class="status-indicator open" id="statusIndicator"></div>
-                    <div class="status-text">
-                        <span class="market-label">Market:</span>
-                        <span class="market-value" id="marketStatusText">OPEN</span>
+                    
+                    <div class="flex items-center gap-4">
+                        <!-- Last Updated Status -->
+                        <div id="lastUpdated" class="glass-dark px-4 py-2 rounded-lg">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse-slow"></div>
+                                <span class="text-sm font-medium">Last updated: <span id="updateTime">Loading...</span></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Refresh Button -->
+                        <button id="refreshBtn" 
+                                class="glass px-4 py-2 rounded-lg hover:bg-blue-600/30 transition-all duration-300 group"
+                                title="Refresh exchange rates">
+                            <i class="fas fa-sync-alt group-hover:rotate-180 transition-transform duration-500"></i>
+                        </button>
                     </div>
-                    <div class="last-update-header" id="lastUpdate"></div>
-                </div>
-                <div class="header-actions">
-                    <button class="header-btn mobile-only" id="mobileConvertBtn">
-                        <i class="fas fa-bolt"></i>
-                        <span>Convert</span>
-                    </button>
-                    <button class="header-btn" id="refreshRates">
-                        <i class="fas fa-sync-alt"></i>
-                        <span class="desktop-only">Refresh</span>
-                    </button>
-                    <button class="header-btn" id="fullscreenBtn">
-                        <i class="fas fa-expand"></i>
-                    </button>
                 </div>
             </div>
         </header>
 
-        <!-- Mobile Quick Actions Bar -->
-        <div class mobile-quick-actions>
-            <button class="quick-action" data-preset="100">
-                <i class="fas fa-dollar-sign"></i>
-                <span>$100</span>
-            </button>
-            <button class="quick-action" data-preset="500">
-                <i class="fas fa-dollar-sign"></i>
-                <span>$500</span>
-            </button>
-            <button class="quick-action" data-preset="1000">
-                <i class="fas fa-dollar-sign"></i>
-                <span>$1,000</span>
-            </button>
-            <button class="quick-action" data-preset="5000">
-                <i class="fas fa-dollar-sign"></i>
-                <span>$5,000</span>
-            </button>
-        </div>
-
         <!-- Main Content -->
-        <main class="main-content">
-            <!-- Converter Section -->
-            <section class="converter-section active-section" id="converterSection">
-                <div class="converter-container">
-                    <!-- Left Panel -->
-                    <div class="converter-panel left-panel">
-                        <div class="panel-title">
-                            <i class="fas fa-exchange-alt"></i>
-                            <h2>Currency Converter</h2>
-                        </div>
-                        
-                        <!-- Amount Input -->
-                        <div class="amount-card">
-                            <label class="amount-label">
-                                <i class="fas fa-money-bill-wave"></i>
-                                Amount to Convert
-                            </label>
-                            <div class="amount-input-container">
-                                <input 
-                                    type="number" 
-                                    id="amountInput"
-                                    class="amount-input"
-                                    placeholder="0.00"
-                                    step="0.01"
-                                    min="0"
-                                    value="1000"
-                                >
-                                <div class="currency-selector-main">
-                                    <div class="selected-currency" id="selectedFromCurrency">
-                                        <span class="flag-icon flag-icon-us"></span>
-                                        <select id="currencyFromSelect">
-                                            <option value="USD" selected>USD</option>
-                                            <option value="EUR">EUR</option>
-                                            <option value="GBP">GBP</option>
-                                            <option value="JPY">JPY</option>
-                                            <option value="CAD">CAD</option>
-                                            <option value="AUD">AUD</option>
-                                            <option value="CHF">CHF</option>
-                                            <option value="CNY">CNY</option>
-                                            <option value="BRL">BRL</option>
-                                        </select>
-                                        <i class="fas fa-chevron-down"></i>
+        <main class="flex-1 py-8 px-4">
+            <div class="container mx-auto max-w-6xl">
+                <!-- Converter Card -->
+                <div class="glass rounded-2xl p-6 md:p-8 mb-8 shadow-2xl">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Left Panel - Input -->
+                        <div class="lg:col-span-2">
+                            <div class="mb-8">
+                                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                                    <i class="fas fa-calculator text-blue-400"></i>
+                                    Currency Converter
+                                </h2>
+                                
+                                <!-- Amount Input -->
+                                <div class="mb-8">
+                                    <label class="block text-sm font-medium mb-3 text-gray-300">
+                                        <i class="fas fa-money-bill-wave mr-2"></i>
+                                        Amount to Convert
+                                    </label>
+                                    <div class="relative">
+                                        <input 
+                                            type="number" 
+                                            id="amountInput"
+                                            class="w-full bg-gray-800/50 border border-gray-700 rounded-xl py-4 px-4 text-3xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                                            placeholder="0.00"
+                                            min="0"
+                                            step="0.01"
+                                            value="1000"
+                                        >
+                                        <div class="absolute right-4 top-1/2 transform -translate-y-1/2">
+                                            <div class="flex items-center gap-2 text-gray-400">
+                                                <span id="baseSymbol" class="text-xl">$</span>
+                                                <span class="text-sm">USD</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Currency Selection -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                    <!-- From Currency -->
+                                    <div>
+                                        <label class="block text-sm font-medium mb-3 text-gray-300">
+                                            <i class="fas fa-arrow-up mr-2"></i>
+                                            From Currency
+                                        </label>
+                                        <div class="relative">
+                                            <select 
+                                                id="fromCurrency"
+                                                class="w-full bg-gray-800/50 border border-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer transition-all duration-300"
+                                            >
+                                                <!-- Options will be populated by JavaScript -->
+                                            </select>
+                                            <div class="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                                <i class="fas fa-chevron-down text-gray-400"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- To Currency -->
+                                    <div>
+                                        <label class="block text-sm font-medium mb-3 text-gray-300">
+                                            <i class="fas fa-arrow-down mr-2"></i>
+                                            To Currency
+                                        </label>
+                                        <div class="relative">
+                                            <select 
+                                                id="toCurrency"
+                                                class="w-full bg-gray-800/50 border border-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer transition-all duration-300"
+                                            >
+                                                <!-- Options will be populated by JavaScript -->
+                                            </select>
+                                            <div class="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                                <i class="fas fa-chevron-down text-gray-400"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Quick Amount Buttons -->
+                                <div class="mb-8">
+                                    <label class="block text-sm font-medium mb-3 text-gray-300">
+                                        <i class="fas fa-bolt mr-2"></i>
+                                        Quick Amounts
+                                    </label>
+                                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                                        <button class="quick-amount glass-dark py-3 rounded-lg hover:bg-blue-600/30 transition-all duration-300" data-amount="10">$10</button>
+                                        <button class="quick-amount glass-dark py-3 rounded-lg hover:bg-blue-600/30 transition-all duration-300" data-amount="50">$50</button>
+                                        <button class="quick-amount glass-dark py-3 rounded-lg hover:bg-blue-600/30 transition-all duration-300" data-amount="100">$100</button>
+                                        <button class="quick-amount glass-dark py-3 rounded-lg hover:bg-blue-600/30 transition-all duration-300" data-amount="500">$500</button>
+                                        <button class="quick-amount glass-dark py-3 rounded-lg hover:bg-blue-600/30 transition-all duration-300" data-amount="1000">$1,000</button>
+                                        <button class="quick-amount glass-dark py-3 rounded-lg hover:bg-blue-600/30 transition-all duration-300" data-amount="5000">$5,000</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Swap Button (Mobile Optimized) -->
-                        <div class="swap-container">
-                            <button class="swap-btn" id="swapBtn">
-                                <i class="fas fa-exchange-alt"></i>
-                                <span class="swap-text">Swap Currencies</span>
-                            </button>
-                        </div>
-
-                        <!-- Target Currency -->
-                        <div class="target-card">
-                            <label class="target-label">
-                                <i class="fas fa-hand-holding-usd"></i>
-                                Converted Amount
-                            </label>
-                            <div class="target-input-container">
-                                <input 
-                                    type="text" 
-                                    id="amountOutput"
-                                    class="amount-output"
-                                    placeholder="0.00"
-                                    readonly
-                                >
-                                <div class="currency-selector-target">
-                                    <div class="selected-currency" id="selectedToCurrency">
-                                        <span class="flag-icon flag-icon-br"></span>
-                                        <select id="currencyToSelect">
-                                            <option value="USD">USD</option>
-                                            <option value="EUR">EUR</option>
-                                            <option value="GBP">GBP</option>
-                                            <option value="JPY">JPY</option>
-                                            <option value="CAD">CAD</option>
-                                            <option value="AUD">AUD</option>
-                                            <option value="CHF">CHF</option>
-                                            <option value="CNY">CNY</option>
-                                            <option value="BRL" selected>BRL</option>
-                                        </select>
-                                        <i class="fas fa-chevron-down"></i>
+                        <!-- Right Panel - Results -->
+                        <div class="lg:col-span-1">
+                            <div class="glass-dark rounded-2xl p-6 h-full">
+                                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                                    <i class="fas fa-chart-line text-green-400"></i>
+                                    Conversion Result
+                                </h2>
+                                
+                                <!-- Result Display -->
+                                <div class="mb-8">
+                                    <div class="text-center mb-6">
+                                        <div class="text-5xl font-bold text-white mb-2" id="resultAmount">
+                                            <span id="convertedAmount">0.00</span>
+                                        </div>
+                                        <div class="text-gray-400 text-lg" id="resultCurrency">
+                                            <span id="targetSymbol">€</span>
+                                            <span id="targetCurrency">EUR</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Exchange Rate -->
+                                    <div class="glass rounded-xl p-4 mb-6">
+                                        <div class="text-center">
+                                            <div class="text-sm text-gray-400 mb-1">Exchange Rate</div>
+                                            <div class="text-2xl font-bold text-white" id="exchangeRate">
+                                                1 USD = 0.00 EUR
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Copy Button -->
+                                    <button 
+                                        id="copyBtn"
+                                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] mb-4 flex items-center justify-center gap-3 group"
+                                    >
+                                        <i class="fas fa-copy group-hover:rotate-12 transition-transform duration-300"></i>
+                                        Copy to Clipboard
+                                    </button>
+                                    
+                                    <!-- Swap Currencies Button -->
+                                    <button 
+                                        id="swapBtn"
+                                        class="w-full glass py-4 px-6 rounded-xl hover:bg-blue-600/30 transition-all duration-300 flex items-center justify-center gap-3 group"
+                                    >
+                                        <i class="fas fa-exchange-alt group-hover:rotate-180 transition-transform duration-500"></i>
+                                        Swap Currencies
+                                    </button>
+                                </div>
+                                
+                                <!-- Additional Info -->
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-gray-400">
+                                            <i class="fas fa-info-circle mr-2"></i>
+                                            Rate last updated
+                                        </span>
+                                        <span class="font-medium" id="rateTimestamp">Just now</span>
+                                    </div>
+                                    
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-gray-400">
+                                            <i class="fas fa-shield-alt mr-2"></i>
+                                            Data source
+                                        </span>
+                                        <span class="font-medium">Frankfurter API</span>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Rate Display -->
-                        <div class="rate-display-card">
-                            <div class="rate-info">
-                                <span class="rate-label">Exchange Rate:</span>
-                                <span class="rate-value" id="currentRateDisplay">1 USD = 5.1500 BRL</span>
-                            </div>
-                            <div class="rate-actions">
-                                <button class="rate-btn" id="reverseRate">
-                                    <i class="fas fa-retweet"></i>
-                                </button>
-                                <button class="rate-btn" id="favoriteRate">
-                                    <i class="far fa-star"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="action-buttons-grid">
-                            <button class="action-btn primary" id="convertBtn">
-                                <i class="fas fa-calculator"></i>
-                                <span>Convert</span>
-                            </button>
-                            <button class="action-btn secondary" id="quickConvertBtn">
-                                <i class="fas fa-bolt"></i>
-                                <span>Quick Convert</span>
-                            </button>
-                            <button class="action-btn tertiary" id="saveConversion">
-                                <i class="fas fa-save"></i>
-                                <span>Save</span>
-                            </button>
-                            <button class="action-btn danger" id="clearAll">
-                                <i class="fas fa-eraser"></i>
-                                <span>Clear</span>
-                            </button>
-                        </div>
-
-                        <!-- Quick Presets -->
-                        <div class="presets-section">
-                            <h3 class="presets-title">
-                                <i class="fas fa-rocket"></i>
-                                Quick Amounts
-                            </h3>
-                            <div class="presets-grid">
-                                <button class="preset" data-amount="100">$100</button>
-                                <button class="preset" data-amount="250">$250</button>
-                                <button class="preset" data-amount="500">$500</button>
-                                <button class="preset" data-amount="1000">$1,000</button>
-                                <button class="preset" data-amount="2500">$2,500</button>
-                                <button class="preset" data-amount="5000">$5,000</button>
-                                <button class="preset" data-amount="10000">$10,000</button>
-                                <button class="preset" data-amount="25000">$25,000</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Panel -->
-                    <div class="converter-panel right-panel">
-                        <div class="panel-title">
-                            <i class="fas fa-chart-line"></i>
-                            <h2>Results & Analytics</h2>
-                        </div>
-
-                        <!-- Conversion Summary -->
-                        <div class="summary-card">
-                            <div class="summary-header">
-                                <i class="fas fa-file-invoice-dollar"></i>
-                                <h3>Conversion Summary</h3>
-                            </div>
-                            <div class="summary-content">
-                                <div class="summary-row">
-                                    <span class="summary-label">Source Amount:</span>
-                                    <span class="summary-value" id="summarySource">USD 1,000.00</span>
-                                </div>
-                                <div class="summary-row">
-                                    <span class="summary-label">Target Amount:</span>
-                                    <span class="summary-value" id="summaryTarget">BRL 5,150.00</span>
-                                </div>
-                                <div class="summary-row">
-                                    <span class="summary-label">Exchange Rate:</span>
-                                    <span class="summary-value" id="summaryRate">1 USD = 5.1500 BRL</span>
-                                </div>
-                                <div class="summary-divider"></div>
-                                <div class="summary-total">
-                                    <span class="total-label">Final Amount:</span>
-                                    <span class="total-value" id="summaryTotal">R$ 5,150.00</span>
-                                </div>
-                                <div class="summary-meta">
-                                    <div class="meta-item">
-                                        <i class="fas fa-clock"></i>
-                                        <span>Time: <strong id="conversionTime">Now</strong></span>
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-shield-alt"></i>
-                                        <span>Rate locked for: <strong>15 min</strong></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Market Snapshot -->
-                        <div class="market-snapshot">
-                            <div class="snapshot-header">
-                                <i class="fas fa-globe"></i>
-                                <h3>Market Snapshot</h3>
-                                <button class="snapshot-refresh" id="refreshMarket">
-                                    <i class="fas fa-redo"></i>
-                                </button>
-                            </div>
-                            <div class="snapshot-grid" id="marketPairs">
-                                <!-- Market pairs loaded dynamically -->
-                            </div>
-                        </div>
-
-                        <!-- Quick Actions -->
-                        <div class="quick-tools">
-                            <h3 class="tools-title">
-                                <i class="fas fa-tools"></i>
-                                Quick Tools
-                            </h3>
-                            <div class="tools-grid">
-                                <button class="tool-btn" data-tool="calculator">
-                                    <i class="fas fa-calculator"></i>
-                                    <span>Fee Calc</span>
-                                </button>
-                                <button class="tool-btn" data-tool="chart">
-                                    <i class="fas fa-chart-line"></i>
-                                    <span>Chart</span>
-                                </button>
-                                <button class="tool-btn" data-tool="history">
-                                    <i class="fas fa-history"></i>
-                                    <span>History</span>
-                                </button>
-                                <button class="tool-btn" data-tool="export">
-                                    <i class="fas fa-file-export"></i>
-                                    <span>Export</span>
-                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
-            </section>
 
-            <!-- Market Data Section (Mobile Tab) -->
-            <section class="market-section" id="marketSection">
-                <!-- Market data content -->
-            </section>
+                <!-- Currency Symbols & Info -->
+                <div class="glass rounded-2xl p-6 md:p-8 mb-8">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                        <i class="fas fa-globe-americas text-yellow-400"></i>
+                        Currency Information
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Popular Currencies -->
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4 text-gray-300">
+                                <i class="fas fa-star mr-2"></i>
+                                Popular Currencies
+                            </h3>
+                            <div class="grid grid-cols-2 gap-3" id="popularCurrencies">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
+                        </div>
+                        
+                        <!-- Currency Symbols -->
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4 text-gray-300">
+                                <i class="fas fa-font mr-2"></i>
+                                Currency Symbols
+                            </h3>
+                            <div class="grid grid-cols-2 gap-3" id="currencySymbols">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- History Section (Mobile Tab) -->
-            <section class="history-section" id="historySection">
-                <!-- History content -->
-            </section>
-
-            <!-- Mobile Bottom Navigation -->
-            <nav class="mobile-nav">
-                <button class="nav-btn active" data-section="converter">
-                    <i class="fas fa-exchange-alt"></i>
-                    <span>Convert</span>
-                </button>
-                <button class="nav-btn" data-section="market">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Market</span>
-                </button>
-                <button class="nav-btn" data-section="history">
-                    <i class="fas fa-history"></i>
-                    <span>History</span>
-                </button>
-                <button class="nav-btn" data-section="calculator">
-                    <i class="fas fa-calculator"></i>
-                    <span>Calc</span>
-                </button>
-                <button class="nav-btn" data-section="more">
-                    <i class="fas fa-ellipsis-h"></i>
-                    <span>More</span>
-                </button>
-            </nav>
+                <!-- API Status & Details -->
+                <div class="glass rounded-2xl p-6 md:p-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- API Status -->
+                        <div class="glass-dark rounded-xl p-6">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                                <h3 class="text-lg font-semibold">API Status</h3>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-2">Frankfurter API is operational</p>
+                            <p class="text-xs text-gray-500">No API key required • Free tier</p>
+                        </div>
+                        
+                        <!-- Update Frequency -->
+                        <div class="glass-dark rounded-xl p-6">
+                            <div class="flex items-center gap-3 mb-4">
+                                <i class="fas fa-clock text-blue-400"></i>
+                                <h3 class="text-lg font-semibold">Update Frequency</h3>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-2">Rates update every 60 minutes</p>
+                            <p class="text-xs text-gray-500">European Central Bank data</p>
+                        </div>
+                        
+                        <!-- Supported Currencies -->
+                        <div class="glass-dark rounded-xl p-6">
+                            <div class="flex items-center gap-3 mb-4">
+                                <i class="fas fa-coins text-yellow-400"></i>
+                                <h3 class="text-lg font-semibold">Supported Currencies</h3>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-2" id="supportedCount">Loading...</p>
+                            <p class="text-xs text-gray-500">All major international currencies</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
 
-        <!-- Mobile Toast Notifications -->
-        <div class="toast-container" id="toastContainer"></div>
-
-        <!-- Mobile Keyboard for amount input (iOS/Android optimization) -->
-        <div class="virtual-keyboard" id="virtualKeyboard">
-            <div class="keyboard-header">
-                <span>Enter Amount</span>
-                <button class="keyboard-close" id="closeKeyboard">
-                    <i class="fas fa-times"></i>
-                </button>
+        <!-- Footer -->
+        <footer class="glass py-6 px-4 mt-8">
+            <div class="container mx-auto max-w-6xl">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="text-center md:text-left">
+                        <p class="text-gray-400 text-sm">
+                            <i class="fas fa-code mr-2"></i>
+                            Professional Portfolio Project • Built with Vanilla JavaScript
+                        </p>
+                    </div>
+                    
+                    <div class="flex items-center gap-6">
+                        <a href="https://github.com" 
+                           class="text-gray-400 hover:text-white transition-colors duration-300"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           title="View on GitHub">
+                            <i class="fab fa-github text-xl"></i>
+                        </a>
+                        
+                        <a href="https://www.frankfurter.app" 
+                           class="text-gray-400 hover:text-white transition-colors duration-300"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           title="Frankfurter API">
+                            <i class="fas fa-database text-xl"></i>
+                        </a>
+                        
+                        <button class="text-gray-400 hover:text-white transition-colors duration-300 no-print"
+                                onclick="window.print()"
+                                title="Print Conversion">
+                            <i class="fas fa-print text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <p class="text-xs text-gray-500">
+                        Disclaimer: Exchange rates are for informational purposes only. 
+                        Rates may vary with financial institutions.
+                    </p>
+                </div>
             </div>
-            <div class="keyboard-keys">
-                <!-- Keys will be generated dynamically -->
+        </footer>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 glass-dark rounded-xl p-4 shadow-2xl transform translate-y-20 transition-transform duration-500 z-50 max-w-sm">
+        <div class="flex items-center gap-3">
+            <div class="text-green-400">
+                <i class="fas fa-check-circle text-xl"></i>
+            </div>
+            <div>
+                <p class="font-medium" id="toastMessage">Copied to clipboard!</p>
+                <p class="text-sm text-gray-400" id="toastDetail">Ready to paste</p>
             </div>
         </div>
     </div>
 
-    <!-- Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 transition-opacity duration-500">
+        <div class="text-center">
+            <div class="spinner mb-4 mx-auto"></div>
+            <p class="text-white text-lg font-medium">Loading exchange rates...</p>
+            <p class="text-gray-400 text-sm mt-2">Fetching latest data from Frankfurter API</p>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
     <script src="script.js"></script>
 </body>
 </html>
